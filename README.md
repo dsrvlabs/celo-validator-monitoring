@@ -11,6 +11,9 @@ This bot send an alert to Discord channel when
 We use 30 mins for validator and 5 mins for Celo network in Baklava testnet.
 You can edit code to change above time intervals :)
 
+dsrv labs also participate in TGCSO. For more details, please visit https://github.com/dsrvlabs/celo.
+
+
 ## Install
 
 ```shell
