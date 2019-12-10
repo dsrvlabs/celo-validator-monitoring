@@ -86,7 +86,7 @@ async def background_task():
             logging.debug('loop - last validated time %s', last_validated_time)
             now = datetime.utcnow()
             if status == CHAIN_DOWN:
-                if now - last_validated_time <= chain_threshold: # chain_threshold intended
+                if now - last_validated_time <= min(chain_threshold, validator_threshold):
                     logging.debug('ok')
                     await celo_channel[0].send('[OK] Celo network got to work.')
                     status = OK
