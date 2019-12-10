@@ -99,7 +99,7 @@ async def background_task():
                 if status == CHAIN_DOWN:
                     await celo_channel[0].send('[Alerting] Celo network got to work but %s Celo validator has not produced any blocks yet.' % validator_name)
                 status = VALIDATOR_DOWN
-            elif now - last_validated_time <= validator_threshold and status != OK:
+            elif now - last_block_time <= chain_threshold and now - last_validated_time <= validator_threshold and status != OK:
                 logging.debug('ok')
                 if status == VALIDATOR_DOWN:
                     await celo_channel[0].send('[OK] %s Celo validator has restored to producing blocks.' % validator_name)
