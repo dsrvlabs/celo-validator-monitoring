@@ -52,6 +52,9 @@ def td_format(td_object):
 
     return ", ".join(strings)
 
+def fromisoformat(s):
+    return datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
+
 def get_last_validated_time():
     f = urlopen(url)
     response = f.read()
@@ -59,7 +62,7 @@ def get_last_validated_time():
     
     match = pattern.search(response)
     # 2019-12-08 11:09:47.000000Z
-    return datetime.fromisoformat(match.group(1).decode('ascii')[:-1])
+    return fromisoformat(match.group(1).decode('ascii')[:-1])
 
 def get_last_block_time():
     f = urlopen(blocks_url)
@@ -67,7 +70,7 @@ def get_last_block_time():
     f.close()
     
     match = pattern.search(response)
-    return datetime.fromisoformat(match.group(1).decode('ascii')[:-1])
+    return fromisoformat(match.group(1).decode('ascii')[:-1])
 
 # from https://github.com/Rapptz/discord.py/blob/async/examples/background_task.py
 async def background_task():
