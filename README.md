@@ -16,7 +16,9 @@ dsrv labs also participate in TGCSO. For more details, please visit https://gith
 
 ## Install
 
+Prerequisite: `python3` installed on your environment.
 ```shell
+$ sudo apt install -y python3-pip
 $ python3 -m pip install -U discord.py
 $ chmod +x discord_bot.py
 $ # in a configuration setting file such as ~/.bash_profile
