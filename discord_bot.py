@@ -85,27 +85,33 @@ async def background_task():
             last_block_time = get_last_block_time()
             logging.debug('loop - last validated time %s', last_validated_time)
             now = datetime.utcnow()
-            if now - last_block_time > chain_threshold and status != CHAIN_DOWN:
-                logging.debug('chain down')
-                if status == OK:
-                    await celo_channel[0].send('[Chain stopped] Celo network has been stopped last %s.' % td_format(chain_threshold))
-                if status == VALIDATOR_DOWN:
-                    await celo_channel[0].send('[Chain stopped] Celo network has been stopped, too.')
-                status = CHAIN_DOWN
-            if now - last_validated_time > validator_threshold and status != VALIDATOR_DOWN:
-                logging.debug('alert')
-                if status == OK:
-                    await celo_channel[0].send('[Alerting] %s Celo validator has not produced any blocks last %s.' % (validator_name, td_format(validator_threshold)))
-                if status == CHAIN_DOWN:
-                    await celo_channel[0].send('[Alerting] Celo network got to work but %s Celo validator has not produced any blocks yet.' % validator_name)
-                status = VALIDATOR_DOWN
-            elif now - last_block_time <= chain_threshold and now - last_validated_time <= validator_threshold and status != OK:
-                logging.debug('ok')
-                if status == VALIDATOR_DOWN:
-                    await celo_channel[0].send('[OK] %s Celo validator has restored to producing blocks.' % validator_name)
-                if status == CHAIN_DOWN:
+            if status == CHAIN_DOWN:
+                if now - last_validated_time <= chain_threshold: # chain_threshold intended
+                    logging.debug('ok')
                     await celo_channel[0].send('[OK] Celo network got to work.')
-                status = OK
+                    status = OK
+                elif now - last_block_time <= chain_threshold:
+                    logging.debug('alert')
+                    await celo_channel[0].send('[Alerting] Celo network got to work but %s Celo validator has not produced any blocks yet.' % validator_name)
+                    status = VALIDATOR_DOWN
+            elif status == VALIDATOR_DOWN:
+                if now - last_block_time > chain_threshold:
+                    logging.debug('chain down')
+                    await celo_channel[0].send('[Chain stopped] Celo network has been stopped, too.')
+                    status = CHAIN_DOWN
+                elif now - last_validated_time <= validator_threshold:
+                    logging.debug('ok')
+                    await celo_channel[0].send('[OK] %s Celo validator has restored to producing blocks.' % validator_name)
+                    status = OK
+            elif status == OK:
+                if now - last_block_time > chain_threshold:
+                    logging.debug('chain down')
+                    await celo_channel[0].send('[Chain stopped] Celo network has been stopped last %s.' % td_format(chain_threshold))
+                    status = CHAIN_DOWN
+                elif now - last_validated_time > validator_threshold:
+                    logging.debug('alert')
+                    await celo_channel[0].send('[Alerting] %s Celo validator has not produced any blocks last %s.' % (validator_name, td_format(validator_threshold)))
+                    status = VALIDATOR_DOWN
         await asyncio.sleep(check_period_sec)
     logging.warning('background_task() exit')
 
