@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# TODO: handle HTTP response errors
 
 import asyncio
 from datetime import datetime, timedelta
@@ -62,7 +63,10 @@ def get_last_validated_time():
     
     match = pattern.search(response)
     # 2019-12-08 11:09:47.000000Z
-    return fromisoformat(match.group(1).decode('ascii')[:-1])
+    if match:
+        return fromisoformat(match.group(1).decode('ascii')[:-1])
+    else:
+        return datetime.min
 
 def get_last_block_time():
     f = urlopen(blocks_url)
@@ -70,7 +74,10 @@ def get_last_block_time():
     f.close()
     
     match = pattern.search(response)
-    return fromisoformat(match.group(1).decode('ascii')[:-1])
+    if match:
+        return fromisoformat(match.group(1).decode('ascii')[:-1])
+    else:
+        return datetime.min
 
 # from https://github.com/Rapptz/discord.py/blob/async/examples/background_task.py
 async def background_task():
