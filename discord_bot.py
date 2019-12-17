@@ -29,6 +29,11 @@ url = 'https://baklava-blockscout.celo-testnet.org/address/%s/validations?type=J
 blocks_url = 'https://baklava-blockscout.celo-testnet.org/blocks?type=JSON'
 pattern = re.compile(b'data-from-now=\\\\"(.*?)\\\\"')
 
+logging.basicConfig(level = logging.WARNING,
+                    format = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s',
+                    filename = 'celo_discord_bot.log',
+                    filemode = 'a')
+
 client = discord.Client()
 celo_channel = [None] # access by reference
 
