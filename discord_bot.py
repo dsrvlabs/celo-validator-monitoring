@@ -3,10 +3,12 @@
 
 import asyncio
 from datetime import datetime, timedelta
+from functools import wraps
 import logging
 import os
 import re
 import time
+from urllib.error import URLError
 from urllib.request import urlopen
 
 # see https://discordpy.readthedocs.io/en/latest/intro.html
@@ -61,6 +63,26 @@ def td_format(td_object):
 def fromisoformat(s):
     return datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
 
+# from https://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
+def retry(ExceptionToCheck, tries=4, delay=3.0, backoff=2.0):
+    def deco_retry(f):
+        @wraps(f)
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 0:
+                try:
+                    return f(*args, **kwargs)
+                except ExceptionToCheck as e:
+                    msg = "%s, Retrying in %d seconds..." % (str(e), mdelay)
+                    logging.warning(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+            return None
+        return f_retry # true decorator
+    return deco_retry
+
+@retry(URLError)
 def get_last_validated_time():
     f = urlopen(url)
     response = f.read()
@@ -73,6 +95,7 @@ def get_last_validated_time():
     else:
         return datetime.min
 
+@retry(URLError)
 def get_last_block_time():
     f = urlopen(blocks_url)
     response = f.read()
@@ -95,6 +118,12 @@ async def background_task():
         if celo_channel[0] is not None:
             last_validated_time = get_last_validated_time()
             last_block_time = get_last_block_time()
+            if last_validated_time is None or last_block_time is None:
+                logging.warning('cannot probe Celo network status')
+                await celo_channel[0].send('[??] cannot probe Celo network status. maybe baklava-blockscout.celo-testnet.org is down.')
+                await asyncio.sleep(check_period_sec)
+                continue
+            
             logging.debug('loop - last validated time %s', last_validated_time)
             now = datetime.utcnow()
             if status == CHAIN_DOWN:
